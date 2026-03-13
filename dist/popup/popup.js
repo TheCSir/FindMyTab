@@ -23,6 +23,7 @@ let settings = {};
 let contentLoaded = false;
 
 const isFloating = new URLSearchParams(window.location.search).has("float");
+const isIframe = isFloating && window.parent !== window;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -436,7 +437,7 @@ function onKeyDown(e) {
       break;
 
     case "Escape":
-      window.close();
+      closePopup();
       break;
   }
 }
@@ -467,12 +468,21 @@ function scrollToSelected() {
 async function switchToTab(tab) {
   if (tab.isSettings) {
     chrome.runtime.openOptionsPage();
-    window.close();
+    closePopup();
     return;
   }
   await chrome.tabs.update(tab.id, { active: true });
   await chrome.windows.update(tab.windowId, { focused: true });
-  window.close();
+  closePopup();
+}
+
+function closePopup() {
+  if (isIframe) {
+    // Tell parent page to remove the overlay
+    window.parent.postMessage({ type: "__wimt_close__" }, "*");
+  } else {
+    window.close();
+  }
 }
 
 async function closeTab(tab) {
