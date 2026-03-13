@@ -242,7 +242,7 @@ function crc32(buf) {
 console.log("Rendering at " + SRC_SIZE + "x" + SRC_SIZE + "...");
 const source = renderSource();
 
-const iconsDir = path.join(__dirname, "..", "icons");
+const iconsDir = path.join(__dirname, "..", "src", "icons");
 
 // Save preview
 const previewPng = encodePng(source, SRC_SIZE);

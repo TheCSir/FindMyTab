@@ -18,13 +18,13 @@ A Chrome extension to quickly search and switch between open tabs. Press **Ctrl+
 ## Install
 
 1. Clone or download this repo
-2. Run the build:
+2. Build the extension:
    ```
-   node scripts/build.js
+   npm run build
    ```
 3. Open `chrome://extensions` in Chrome
 4. Enable **Developer mode** (top-right toggle)
-5. Click **Load unpacked** and select the `extension/` folder
+5. Click **Load unpacked** and select the `dist/` folder
 
 ## Usage
 
@@ -50,49 +50,42 @@ Right-click the extension icon and select **Options**, or go to `chrome://extens
 ## Project Structure
 
 ```
-WhereIsMyTab/
-├── manifest.json            # MV3 manifest
-├── popup/
-│   ├── popup.html           # Search popup
-│   ├── popup.css            # Popup styles with theming
-│   └── popup.js             # Search, virtual scroll, tab switching
-├── options/
-│   ├── options.html         # Settings page
-│   ├── options.css          # Settings styles
-│   └── options.js           # Settings logic with live preview
-├── shared/
-│   └── defaults.js          # Shared settings defaults and presets
-├── icons/
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
-└── scripts/
-    ├── build.js             # Bundles extension/ for Chrome
-    ├── generate-icons.js    # Renders icons from code (SDF-based)
-    ├── test.js              # 30 unit tests
-    └── validate.js          # Validates manifest and file references
+FindMyTab/
+├── src/                        # Extension source
+│   ├── manifest.json
+│   ├── popup/
+│   │   ├── popup.html
+│   │   ├── popup.css
+│   │   └── popup.js
+│   ├── options/
+│   │   ├── options.html
+│   │   ├── options.css
+│   │   └── options.js
+│   ├── shared/
+│   │   └── defaults.js
+│   └── icons/
+│       ├── icon16.png
+│       ├── icon48.png
+│       └── icon128.png
+├── dist/                       # Build output (load this in Chrome)
+├── tests/
+│   └── test.js
+├── scripts/
+│   ├── build.js                # Copies src/ -> dist/
+│   ├── generate-icons.js       # Renders icons from code (SDF-based)
+│   └── validate.js             # Validates manifest and file references
+├── package.json
+├── LICENSE
+└── README.md
 ```
 
 ## Development
 
-**Run tests:**
-```
-node scripts/test.js
-```
-
-**Validate extension structure:**
-```
-node scripts/validate.js
-```
-
-**Regenerate icons:**
-```
-node scripts/generate-icons.js
-```
-
-**Build for Chrome:**
-```
-node scripts/build.js
+```bash
+npm test              # Run 30 unit tests
+npm run validate      # Validate manifest and file references
+npm run icons         # Regenerate icons from code
+npm run build         # Bundle src/ into dist/ for Chrome
 ```
 
 ## Permissions

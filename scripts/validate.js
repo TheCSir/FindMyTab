@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const root = path.join(__dirname, "..");
-const m = JSON.parse(fs.readFileSync(path.join(root, "manifest.json"), "utf8"));
+const src = path.join(__dirname, "..", "src");
+const m = JSON.parse(fs.readFileSync(path.join(src, "manifest.json"), "utf8"));
 const errors = [];
 
 if (m.manifest_version !== 3) errors.push("Not MV3");
@@ -18,7 +18,7 @@ const files = [m.action.default_popup]
 
 const unique = [...new Set(files)];
 for (const f of unique) {
-  const full = path.join(root, f);
+  const full = path.join(src, f);
   if (!fs.existsSync(full)) {
     errors.push("Missing file: " + f);
   } else {
@@ -28,17 +28,17 @@ for (const f of unique) {
 }
 
 // Check popup.html references
-const popupHtml = fs.readFileSync(path.join(root, m.action.default_popup), "utf8");
+const popupHtml = fs.readFileSync(path.join(src, m.action.default_popup), "utf8");
 const cssMatch = popupHtml.match(/href="([^"]+\.css)"/);
 const jsMatch = popupHtml.match(/src="([^"]+\.js)"/);
 
 if (cssMatch) {
-  const cssPath = path.join(root, "popup", cssMatch[1]);
+  const cssPath = path.join(src, "popup", cssMatch[1]);
   if (!fs.existsSync(cssPath)) errors.push("Missing CSS: " + cssMatch[1]);
   else console.log("  OK:", "popup/" + cssMatch[1]);
 }
 if (jsMatch) {
-  const jsPath = path.join(root, "popup", jsMatch[1]);
+  const jsPath = path.join(src, "popup", jsMatch[1]);
   if (!fs.existsSync(jsPath)) errors.push("Missing JS: " + jsMatch[1]);
   else console.log("  OK:", "popup/" + jsMatch[1]);
 }

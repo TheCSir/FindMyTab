@@ -1,0 +1,13 @@
+{
+  "name": "find-my-tab",
+  "version": "1.0.0",
+  "description": "Chrome extension to quickly search and switch between open tabs",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node tests/test.js",
+    "validate": "node scripts/validate.js",
+    "icons": "node scripts/generate-icons.js"
+  },
+  "license": "MIT"
+}

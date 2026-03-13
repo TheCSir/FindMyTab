@@ -2,7 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
-const out = path.join(root, "extension");
+const src = path.join(root, "src");
+const out = path.join(root, "dist");
 
 // Files to include in the extension bundle
 const files = [
@@ -27,16 +28,16 @@ if (fs.existsSync(out)) {
 // Copy files
 let copied = 0;
 for (const file of files) {
-  const src = path.join(root, file);
-  const dst = path.join(out, file);
+  const srcFile = path.join(src, file);
+  const dstFile = path.join(out, file);
 
-  if (!fs.existsSync(src)) {
+  if (!fs.existsSync(srcFile)) {
     console.error("  MISSING: " + file);
     process.exit(1);
   }
 
-  fs.mkdirSync(path.dirname(dst), { recursive: true });
-  fs.copyFileSync(src, dst);
+  fs.mkdirSync(path.dirname(dstFile), { recursive: true });
+  fs.copyFileSync(srcFile, dstFile);
   copied++;
 }
 
@@ -56,5 +57,5 @@ for (const ref of [...new Set(refs)]) {
   }
 }
 
-console.log("Build complete: " + copied + " files -> extension/");
-console.log("Load this folder in chrome://extensions with Developer Mode enabled.");
+console.log("Build complete: " + copied + " files -> dist/");
+console.log("Load the dist/ folder in chrome://extensions with Developer Mode enabled.");
