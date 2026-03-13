@@ -28,6 +28,17 @@ const isIframe = isFloating && window.parent !== window;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+  // If floating layout is set and we're NOT already inside the overlay iframe,
+  // tell the background to inject the overlay and close this popup
+  if (!isFloating) {
+    const s = await loadSettings();
+    if (s.layout === "floating") {
+      chrome.runtime.sendMessage({ type: "open-float" });
+      window.close();
+      return;
+    }
+  }
+
   if (isFloating) document.body.classList.add("float-mode");
   searchInput.focus();
   settings = await loadSettings();
