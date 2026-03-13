@@ -13,6 +13,7 @@ const emptyState = document.getElementById("empty-state");
 const scrollViewport = document.getElementById("scroll-viewport");
 const scrollSpacer = document.getElementById("scroll-spacer");
 const resultCount = document.getElementById("result-count");
+const settingsBtn = document.getElementById("settings-btn");
 
 let tabCache = [];
 let filteredTabs = [];
@@ -30,6 +31,8 @@ async function init() {
   applyTheme();
   applySearchBoxStyle();
   applyAccentColor();
+  applyPopupWidth();
+  applyFontSize();
 
   if (settings.contentSearch) {
     searchInput.placeholder = "Search tabs by title, URL, or content...";
@@ -55,6 +58,7 @@ async function init() {
   });
 
   windowCount = windowIds.size;
+  applySortOrder(tabCache);
   filteredTabs = tabCache;
   updateResultCount();
   renderVirtual();
@@ -64,6 +68,7 @@ async function init() {
   scrollViewport.addEventListener("scroll", onScroll);
   resultsList.addEventListener("click", onListClick);
   resultsList.addEventListener("mouseover", onListMouseOver);
+  settingsBtn.addEventListener("click", openSettings);
 
   if (settings.contentSearch) {
     extractContentProgressively();
@@ -96,6 +101,33 @@ function applyAccentColor() {
     document.documentElement.style.setProperty("--input-border-focus", accent);
     document.documentElement.style.setProperty("--bg-selected", accent + "22");
   }
+}
+
+function applyPopupWidth() {
+  const widthObj = POPUP_WIDTHS.find((w) => w.value === settings.popupWidth);
+  if (widthObj) {
+    document.documentElement.style.setProperty("--popup-width", widthObj.width);
+  }
+}
+
+function applyFontSize() {
+  const sizeObj = FONT_SIZES.find((f) => f.value === settings.fontSize);
+  if (sizeObj) {
+    document.documentElement.style.setProperty("--font-size", sizeObj.size);
+  }
+}
+
+function applySortOrder(tabs) {
+  if (settings.defaultSort === "alpha") {
+    tabs.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (settings.defaultSort === "window") {
+    tabs.sort((a, b) => a.windowId - b.windowId || a.id - b.id);
+  }
+  // "recent" keeps Chrome's default order
+}
+
+function openSettings() {
+  chrome.runtime.openOptionsPage();
 }
 
 // --- Content extraction ---
@@ -151,6 +183,17 @@ async function extractTabContent(tab) {
 // --- Event delegation ---
 
 function onListClick(e) {
+  // Close button click
+  const closeBtn = e.target.closest(".tab-close");
+  if (closeBtn) {
+    e.stopPropagation();
+    const item = closeBtn.closest(".tab-item");
+    if (!item) return;
+    const idx = parseInt(item.dataset.index, 10);
+    if (filteredTabs[idx]) closeTab(filteredTabs[idx]);
+    return;
+  }
+
   const item = e.target.closest(".tab-item");
   if (!item) return;
   const idx = parseInt(item.dataset.index, 10);
@@ -286,12 +329,14 @@ function createTabItem(tab, index, query) {
   titleEl.className = "tab-title";
   titleEl.innerHTML = highlightMatch(tab.title, query);
 
-  const urlEl = document.createElement("div");
-  urlEl.className = "tab-url";
-  urlEl.innerHTML = highlightMatch(tab.urlDisplay, query);
-
   info.appendChild(titleEl);
-  info.appendChild(urlEl);
+
+  if (settings.showUrls) {
+    const urlEl = document.createElement("div");
+    urlEl.className = "tab-url";
+    urlEl.innerHTML = highlightMatch(tab.urlDisplay, query);
+    info.appendChild(urlEl);
+  }
 
   // Show content snippet if matched by content but not title/url
   if (query && tab.contentLower) {
@@ -317,6 +362,14 @@ function createTabItem(tab, index, query) {
     badge.className = "tab-window-badge";
     badge.textContent = "W" + getWindowNumber(tab.windowId);
     li.appendChild(badge);
+  }
+
+  if (settings.showCloseButton) {
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "tab-close";
+    closeBtn.title = "Close tab";
+    closeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    li.appendChild(closeBtn);
   }
 
   return li;
@@ -394,12 +447,18 @@ function scrollToSelected() {
   }
 }
 
-// --- Tab switching ---
+// --- Tab actions ---
 
 async function switchToTab(tab) {
   await chrome.tabs.update(tab.id, { active: true });
   await chrome.windows.update(tab.windowId, { focused: true });
   window.close();
+}
+
+async function closeTab(tab) {
+  await chrome.tabs.remove(tab.id);
+  tabCache = tabCache.filter((t) => t.id !== tab.id);
+  executeSearch();
 }
 
 // --- Result count ---

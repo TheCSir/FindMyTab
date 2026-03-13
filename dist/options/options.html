@@ -24,6 +24,10 @@
       <h2 class="card-title">Live Preview</h2>
       <div id="preview-popup">
         <div class="preview-search-container">
+          <svg class="preview-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </svg>
           <input type="text" id="preview-input" value="github" readonly tabindex="-1">
         </div>
         <div class="preview-results">
@@ -99,6 +103,35 @@
       <div class="style-grid" id="style-grid"></div>
     </section>
 
+    <!-- Layout -->
+    <section class="card">
+      <h2 class="card-title">Layout</h2>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Popup Width</span>
+          <span class="label-desc">Set the width of the search popup</span>
+        </div>
+        <div class="segmented-control" id="width-control"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Font Size</span>
+          <span class="label-desc">Adjust text size in the popup</span>
+        </div>
+        <div class="segmented-control" id="font-size-control"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Show URLs</span>
+          <span class="label-desc">Display the URL below each tab title</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="show-urls-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </section>
+
     <!-- Search Behavior -->
     <section class="card">
       <h2 class="card-title">Search</h2>
@@ -123,6 +156,28 @@
           <option value="200">200</option>
           <option value="500">500</option>
         </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Default Sort</span>
+          <span class="label-desc">Tab order when no search query is active</span>
+        </div>
+        <select id="default-sort"></select>
+      </div>
+    </section>
+
+    <!-- Tab Management -->
+    <section class="card">
+      <h2 class="card-title">Tab Management</h2>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Close Button</span>
+          <span class="label-desc">Show an X button on hover to close tabs from the popup</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="close-button-toggle">
+          <span class="toggle-slider"></span>
+        </label>
       </div>
     </section>
 

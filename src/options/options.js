@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   currentSettings = await loadSettings();
   buildColorGrid();
   buildStyleGrid();
+  buildSegmentedControls();
+  buildSortSelect();
   applySettingsToUI();
   bindEvents();
   applyLivePreview();
@@ -48,6 +50,47 @@ function buildStyleGrid() {
   }
 }
 
+function buildSegmentedControls() {
+  // Popup width
+  buildSegmented("width-control", POPUP_WIDTHS, currentSettings.popupWidth, (val) => {
+    currentSettings.popupWidth = val;
+    save();
+  });
+
+  // Font size
+  buildSegmented("font-size-control", FONT_SIZES, currentSettings.fontSize, (val) => {
+    currentSettings.fontSize = val;
+    applyLivePreview();
+    save();
+  });
+}
+
+function buildSegmented(containerId, options, activeValue, onChange) {
+  const container = document.getElementById(containerId);
+  for (const opt of options) {
+    const btn = document.createElement("button");
+    btn.className = "seg-btn" + (opt.value === activeValue ? " active" : "");
+    btn.textContent = opt.name;
+    btn.dataset.value = opt.value;
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".seg-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      onChange(opt.value);
+    });
+    container.appendChild(btn);
+  }
+}
+
+function buildSortSelect() {
+  const select = document.getElementById("default-sort");
+  for (const opt of SORT_OPTIONS) {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.name;
+    select.appendChild(option);
+  }
+}
+
 // --- Apply stored settings to UI ---
 
 function applySettingsToUI() {
@@ -71,6 +114,15 @@ function applySettingsToUI() {
 
   // Max results
   document.getElementById("max-results").value = String(currentSettings.maxResults);
+
+  // Default sort
+  document.getElementById("default-sort").value = currentSettings.defaultSort;
+
+  // Show URLs
+  document.getElementById("show-urls-toggle").checked = currentSettings.showUrls;
+
+  // Close button
+  document.getElementById("close-button-toggle").checked = currentSettings.showCloseButton;
 
   // Theme class on body
   applyThemeClass(currentSettings.theme);
@@ -105,6 +157,25 @@ function bindEvents() {
   // Max results
   document.getElementById("max-results").addEventListener("change", (e) => {
     currentSettings.maxResults = parseInt(e.target.value, 10);
+    save();
+  });
+
+  // Default sort
+  document.getElementById("default-sort").addEventListener("change", (e) => {
+    currentSettings.defaultSort = e.target.value;
+    save();
+  });
+
+  // Show URLs toggle
+  document.getElementById("show-urls-toggle").addEventListener("change", (e) => {
+    currentSettings.showUrls = e.target.checked;
+    applyLivePreview();
+    save();
+  });
+
+  // Close button toggle
+  document.getElementById("close-button-toggle").addEventListener("change", (e) => {
+    currentSettings.showCloseButton = e.target.checked;
     save();
   });
 
@@ -154,15 +225,30 @@ function applyLivePreview() {
   previewInput.style.borderColor = accent;
   previewPopup.querySelectorAll(".preview-url").forEach((el) => {
     el.style.color = accent;
+    el.style.display = currentSettings.showUrls ? "" : "none";
   });
   if (selectedItem) {
     selectedItem.style.background = accentSoft;
+  }
+
+  // Search icon color
+  const searchIcon = previewPopup.querySelector(".preview-search-icon");
+  if (searchIcon) {
+    searchIcon.style.color = accent;
   }
 
   // Search box style
   const styleObj = SEARCH_BOX_STYLES.find((s) => s.value === currentSettings.searchBoxStyle);
   if (styleObj) {
     previewInput.style.borderRadius = styleObj.radius;
+  }
+
+  // Font size in preview
+  const sizeObj = FONT_SIZES.find((f) => f.value === currentSettings.fontSize);
+  if (sizeObj) {
+    previewPopup.querySelectorAll(".preview-title").forEach((el) => {
+      el.style.fontSize = sizeObj.size;
+    });
   }
 
   // Accent CSS variable for options page itself

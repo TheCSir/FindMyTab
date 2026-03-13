@@ -315,6 +315,41 @@ body {
   color: var(--accent);
 }
 
+/* Segmented Control */
+
+.segmented-control {
+  display: flex;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.seg-btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.seg-btn:hover {
+  color: var(--text-primary);
+}
+
+.seg-btn.active {
+  background: var(--bg-card);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 /* Toggle Switch */
 
 .toggle-switch {
@@ -403,11 +438,21 @@ select:focus {
 
 .preview-search-container {
   padding: 10px;
+  position: relative;
+}
+
+.preview-search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  pointer-events: none;
 }
 
 #preview-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 12px 8px 32px;
   border: 2px solid var(--accent);
   background: var(--bg-card);
   color: var(--text-primary);

@@ -6,6 +6,11 @@ const DEFAULTS = {
   searchBoxStyle: "pill",
   contentSearch: false,
   maxResults: 100,
+  popupWidth: "default",
+  showUrls: true,
+  defaultSort: "recent",
+  showCloseButton: false,
+  fontSize: "default",
 };
 
 const ACCENT_PRESETS = [
@@ -23,6 +28,24 @@ const SEARCH_BOX_STYLES = [
   { name: "Pill", value: "pill", radius: "24px" },
   { name: "Rounded", value: "rounded", radius: "8px" },
   { name: "Square", value: "square", radius: "2px" },
+];
+
+const POPUP_WIDTHS = [
+  { name: "Compact", value: "compact", width: "320px" },
+  { name: "Default", value: "default", width: "400px" },
+  { name: "Wide", value: "wide", width: "500px" },
+];
+
+const FONT_SIZES = [
+  { name: "Small", value: "small", size: "12px" },
+  { name: "Default", value: "default", size: "13px" },
+  { name: "Large", value: "large", size: "14px" },
+];
+
+const SORT_OPTIONS = [
+  { name: "Recent", value: "recent" },
+  { name: "Alphabetical", value: "alpha" },
+  { name: "Window", value: "window" },
 ];
 
 async function loadSettings() {
