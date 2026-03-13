@@ -50,8 +50,12 @@ const SORT_OPTIONS = [
 ];
 
 async function loadSettings() {
-  const result = await chrome.storage.sync.get(DEFAULTS);
-  return result;
+  try {
+    const result = await chrome.storage.sync.get(DEFAULTS);
+    return result;
+  } catch {
+    return { ...DEFAULTS };
+  }
 }
 
 async function saveSettings(settings) {
