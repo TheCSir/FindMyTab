@@ -338,6 +338,10 @@ mark {
 
 /* Empty state */
 
+#empty-state[hidden] {
+  display: none;
+}
+
 #empty-state {
   display: flex;
   flex-direction: column;
