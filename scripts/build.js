@@ -15,6 +15,7 @@ const files = [
   "options/options.css",
   "options/options.js",
   "shared/defaults.js",
+  "background.js",
   "icons/icon16.png",
   "icons/icon48.png",
   "icons/icon128.png",

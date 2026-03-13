@@ -22,15 +22,18 @@ let debounceTimer = 0;
 let settings = {};
 let contentLoaded = false;
 
+const isFloating = new URLSearchParams(window.location.search).has("float");
+
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+  if (isFloating) document.body.classList.add("float-mode");
   searchInput.focus();
   settings = await loadSettings();
   applyTheme();
   applySearchBoxStyle();
   applyAccentColor();
-  applyPopupWidth();
+  if (!isFloating) applyPopupWidth();
   applyFontSize();
 
   if (settings.contentSearch) {

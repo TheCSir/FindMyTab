@@ -11,6 +11,7 @@ const DEFAULTS = {
   defaultSort: "recent",
   showCloseButton: false,
   fontSize: "default",
+  layout: "popup",
 };
 
 const ACCENT_PRESETS = [

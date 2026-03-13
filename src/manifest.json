@@ -5,6 +5,9 @@
   "description": "Quickly search and switch between open tabs with Ctrl+Shift+F",
   "permissions": ["tabs", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {

@@ -52,6 +52,18 @@ function buildStyleGrid() {
 
 function buildSegmentedControls() {
   // Popup width
+  // Layout mode
+  const LAYOUT_OPTIONS = [
+    { name: "Popup", value: "popup" },
+    { name: "Floating", value: "floating" },
+  ];
+  buildSegmented("layout-control", LAYOUT_OPTIONS, currentSettings.layout, (val) => {
+    currentSettings.layout = val;
+    updateWidthRowVisibility();
+    save();
+  });
+
+  // Popup width
   buildSegmented("width-control", POPUP_WIDTHS, currentSettings.popupWidth, (val) => {
     currentSettings.popupWidth = val;
     save();
@@ -63,6 +75,13 @@ function buildSegmentedControls() {
     applyLivePreview();
     save();
   });
+
+  updateWidthRowVisibility();
+}
+
+function updateWidthRowVisibility() {
+  const widthRow = document.getElementById("width-row");
+  widthRow.style.display = currentSettings.layout === "floating" ? "none" : "";
 }
 
 function buildSegmented(containerId, options, activeValue, onChange) {

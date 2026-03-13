@@ -11,10 +11,12 @@ if (!m.version) errors.push("Missing version");
 if (!m.permissions || !m.permissions.includes("tabs")) errors.push("Missing tabs permission");
 if (!m.action || !m.action.default_popup) errors.push("Missing default_popup");
 if (!m.commands || !m.commands._execute_action) errors.push("Missing _execute_action command");
+if (!m.background || !m.background.service_worker) errors.push("Missing background service worker");
 
 const files = [m.action.default_popup]
   .concat(Object.values(m.action.default_icon || {}))
-  .concat(Object.values(m.icons || {}));
+  .concat(Object.values(m.icons || {}))
+  .concat(m.background && m.background.service_worker ? [m.background.service_worker] : []);
 
 const unique = [...new Set(files)];
 for (const f of unique) {
