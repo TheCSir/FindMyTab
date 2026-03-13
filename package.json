@@ -1,5 +1,5 @@
 {
-  "name": "find-my-tab",
+  "name": "where-is-my-tab",
   "version": "1.0.0",
   "description": "Chrome extension to quickly search and switch between open tabs",
   "private": true,

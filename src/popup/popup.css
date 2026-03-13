@@ -218,12 +218,50 @@ body {
   position: relative;
 }
 
-.tab-item:hover {
+/* Hover effects */
+
+[data-hover-effect="highlight"] .tab-item:hover {
   background: var(--bg-hover);
 }
 
-.tab-item.selected {
+[data-hover-effect="glow"] .tab-item:hover {
+  background: var(--bg-hover);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+[data-hover-effect="slide"] .tab-item {
+  transition: transform 0.15s ease, background 0.1s;
+}
+
+[data-hover-effect="slide"] .tab-item:hover {
+  background: var(--bg-hover);
+  transform: translateX(4px);
+}
+
+[data-hover-effect="none"] .tab-item:hover {
+  background: transparent;
+}
+
+/* Selection effects */
+
+[data-selection-effect="highlight"] .tab-item.selected {
   background: var(--bg-selected);
+}
+
+[data-selection-effect="border-left"] .tab-item.selected {
+  background: var(--bg-selected);
+  border-left: 3px solid var(--accent);
+  padding-left: 9px;
+}
+
+[data-selection-effect="scale"] .tab-item.selected {
+  background: var(--bg-selected);
+  transform: scale(1.02);
+  transform-origin: center left;
+}
+
+[data-selection-effect="none"] .tab-item.selected {
+  background: transparent;
 }
 
 .tab-favicon {

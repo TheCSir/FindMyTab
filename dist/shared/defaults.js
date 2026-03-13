@@ -12,6 +12,10 @@ const DEFAULTS = {
   showCloseButton: false,
   fontSize: "default",
   layout: "popup",
+  hoverEffect: "highlight",
+  selectionEffect: "highlight",
+  bgColor: "#292a2d",
+  bgOpacity: 100,
 };
 
 const ACCENT_PRESETS = [
@@ -41,6 +45,31 @@ const FONT_SIZES = [
   { name: "Small", value: "small", size: "12px" },
   { name: "Default", value: "default", size: "13px" },
   { name: "Large", value: "large", size: "14px" },
+];
+
+const BG_PRESETS = [
+  { name: "Dark", value: "#292a2d" },
+  { name: "Charcoal", value: "#1e1e1e" },
+  { name: "Navy", value: "#1a1b2e" },
+  { name: "Midnight", value: "#0f172a" },
+  { name: "Graphite", value: "#374151" },
+  { name: "White", value: "#ffffff" },
+  { name: "Light Gray", value: "#f8f9fa" },
+  { name: "Warm Gray", value: "#f5f0eb" },
+];
+
+const HOVER_EFFECTS = [
+  { name: "Highlight", value: "highlight" },
+  { name: "Glow", value: "glow" },
+  { name: "Slide", value: "slide" },
+  { name: "None", value: "none" },
+];
+
+const SELECTION_EFFECTS = [
+  { name: "Highlight", value: "highlight" },
+  { name: "Border Left", value: "border-left" },
+  { name: "Scale", value: "scale" },
+  { name: "None", value: "none" },
 ];
 
 const SORT_OPTIONS = [

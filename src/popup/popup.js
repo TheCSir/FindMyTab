@@ -1,5 +1,7 @@
 "use strict";
 
+// --- Constants ---
+
 const ITEM_HEIGHT = 48;
 const VIEWPORT_HEIGHT = 400;
 const OVERSCAN = 5;
@@ -7,12 +9,45 @@ const DEBOUNCE_MS = 16;
 const CONTENT_SNIPPET_LEN = 120;
 const CONTENT_EXTRACT_BATCH = 8;
 
+const HTML_ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
+const HTML_ESC_RE = /[&<>"]/g;
+
+const FALLBACK_ICON =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="%2345475a"/><text x="8" y="12" text-anchor="middle" font-size="11" fill="%23cdd6f4">?</text></svg>'
+  );
+
+const SETTINGS_ICON =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="%23475569"/><path d="M8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM8 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="%23cdd6f4"/><path d="M13 7.5h-.7a4.5 4.5 0 00-.5-1.2l.5-.5a.5.5 0 000-.7l-.4-.4a.5.5 0 00-.7 0l-.5.5a4.5 4.5 0 00-1.2-.5V4a.5.5 0 00-.5-.5h-.5a.5.5 0 00-.5.5v.7a4.5 4.5 0 00-1.2.5l-.5-.5a.5.5 0 00-.7 0l-.4.4a.5.5 0 000 .7l.5.5a4.5 4.5 0 00-.5 1.2H3a.5.5 0 00-.5.5v.5a.5.5 0 00.5.5h.7a4.5 4.5 0 00.5 1.2l-.5.5a.5.5 0 000 .7l.4.4a.5.5 0 00.7 0l.5-.5a4.5 4.5 0 001.2.5v.7a.5.5 0 00.5.5h.5a.5.5 0 00.5-.5v-.7a4.5 4.5 0 001.2-.5l.5.5a.5.5 0 00.7 0l.4-.4a.5.5 0 000-.7l-.5-.5a4.5 4.5 0 00.5-1.2h.7a.5.5 0 00.5-.5V8a.5.5 0 00-.5-.5z" fill="%23cdd6f4"/></svg>'
+  );
+
+const SETTINGS_ENTRY = {
+  id: "__settings__",
+  windowId: 0,
+  title: "Where Is My Tab \u2014 Settings",
+  url: "",
+  favIconUrl: "",
+  titleLower: "where is my tab \u2014 settings preferences options configure",
+  urlLower: "",
+  urlDisplay: "Extension settings",
+  content: "",
+  contentLower: "",
+  isSettings: true,
+};
+
+// --- DOM references ---
+
 const searchInput = document.getElementById("search-input");
 const resultsList = document.getElementById("results-list");
 const emptyState = document.getElementById("empty-state");
 const scrollViewport = document.getElementById("scroll-viewport");
 const scrollSpacer = document.getElementById("scroll-spacer");
 const resultCount = document.getElementById("result-count");
+
+// --- State ---
 
 let tabCache = [];
 let filteredTabs = [];
@@ -22,14 +57,17 @@ let debounceTimer = 0;
 let settings = {};
 let contentLoaded = false;
 
+const windowNumberMap = new Map();
+let nextWindowNumber = 1;
+
 const isFloating = new URLSearchParams(window.location.search).has("float");
 const isIframe = isFloating && window.parent !== window;
+
+// --- Init ---
 
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-  // If floating layout is set and we're NOT already inside the overlay iframe,
-  // tell the background to inject the overlay and close this popup
   if (!isFloating) {
     const s = await loadSettings();
     if (s.layout === "floating") {
@@ -47,6 +85,9 @@ async function init() {
   applyAccentColor();
   if (!isFloating) applyPopupWidth();
   applyFontSize();
+  applyHoverEffect();
+  applySelectionEffect();
+  applyBgColor();
 
   if (settings.contentSearch) {
     searchInput.placeholder = "Search tabs by title, URL, or content...";
@@ -130,28 +171,31 @@ function applyFontSize() {
   }
 }
 
+function applyHoverEffect() {
+  document.body.dataset.hoverEffect = settings.hoverEffect || "highlight";
+}
+
+function applySelectionEffect() {
+  document.body.dataset.selectionEffect = settings.selectionEffect || "highlight";
+}
+
+function applyBgColor() {
+  const color = settings.bgColor || "#292a2d";
+  const opacity = settings.bgOpacity != null ? settings.bgOpacity : 100;
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  const a = opacity / 100;
+  document.body.style.setProperty("--bg-primary", `rgba(${r},${g},${b},${a})`);
+}
+
 function applySortOrder(tabs) {
   if (settings.defaultSort === "alpha") {
     tabs.sort((a, b) => a.title.localeCompare(b.title));
   } else if (settings.defaultSort === "window") {
     tabs.sort((a, b) => a.windowId - b.windowId || a.id - b.id);
   }
-  // "recent" keeps Chrome's default order
 }
-
-const SETTINGS_ENTRY = {
-  id: "__settings__",
-  windowId: 0,
-  title: "Where Is My Tab \u2014 Settings",
-  url: "",
-  favIconUrl: "",
-  titleLower: "where is my tab \u2014 settings preferences options configure",
-  urlLower: "",
-  urlDisplay: "Extension settings",
-  content: "",
-  contentLower: "",
-  isSettings: true,
-};
 
 // --- Content extraction ---
 
@@ -163,8 +207,7 @@ async function extractContentProgressively() {
   }
 
   for (const batch of batches) {
-    const promises = batch.map((tab) => extractTabContent(tab));
-    await Promise.allSettled(promises);
+    await Promise.allSettled(batch.map((tab) => extractTabContent(tab)));
   }
 
   contentLoaded = true;
@@ -206,7 +249,6 @@ async function extractTabContent(tab) {
 // --- Event delegation ---
 
 function onListClick(e) {
-  // Close button click
   const closeBtn = e.target.closest(".tab-close");
   if (closeBtn) {
     e.stopPropagation();
@@ -233,7 +275,7 @@ function onListMouseOver(e) {
   }
 }
 
-// --- Debounced search ---
+// --- Search ---
 
 function onSearchInput() {
   clearTimeout(debounceTimer);
@@ -251,12 +293,10 @@ function executeSearch() {
     const scored = [];
 
     for (let i = 0; i < tabCache.length; i++) {
-      const tab = tabCache[i];
-      const score = scoreTab(tab, terms);
-      if (score > 0) scored.push({ tab, score });
+      const score = scoreTab(tabCache[i], terms);
+      if (score > 0) scored.push({ tab: tabCache[i], score });
     }
 
-    // Check if settings entry matches
     const settingsScore = scoreTab(SETTINGS_ENTRY, terms);
     if (settingsScore > 0) scored.push({ tab: SETTINGS_ENTRY, score: settingsScore });
 
@@ -315,14 +355,11 @@ function renderVirtual() {
   }
 
   emptyState.hidden = true;
-  const totalHeight = total * ITEM_HEIGHT;
-  scrollSpacer.style.height = totalHeight + "px";
+  scrollSpacer.style.height = total * ITEM_HEIGHT + "px";
 
   const scrollTop = scrollViewport.scrollTop;
-  const startRaw = Math.floor(scrollTop / ITEM_HEIGHT);
-  const start = Math.max(0, startRaw - OVERSCAN);
-  const endRaw = Math.ceil((scrollTop + VIEWPORT_HEIGHT) / ITEM_HEIGHT);
-  const end = Math.min(total, endRaw + OVERSCAN);
+  const start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+  const end = Math.min(total, Math.ceil((scrollTop + VIEWPORT_HEIGHT) / ITEM_HEIGHT) + OVERSCAN);
 
   const query = searchInput.value.trim().toLowerCase();
   const fragment = document.createDocumentFragment();
@@ -355,7 +392,6 @@ function createTabItem(tab, index, query) {
   const titleEl = document.createElement("div");
   titleEl.className = "tab-title";
   titleEl.innerHTML = highlightMatch(tab.title, query);
-
   info.appendChild(titleEl);
 
   if (settings.showUrls) {
@@ -365,7 +401,6 @@ function createTabItem(tab, index, query) {
     info.appendChild(urlEl);
   }
 
-  // Show content snippet if matched by content but not title/url
   if (query && tab.contentLower) {
     const terms = query.split(/\s+/);
     const titleHit = terms.every((t) => tab.titleLower.includes(t));
@@ -489,7 +524,6 @@ async function switchToTab(tab) {
 
 function closePopup() {
   if (isIframe) {
-    // Tell parent page to remove the overlay
     window.parent.postMessage({ type: "__wimt_close__" }, "*");
   } else {
     window.close();
@@ -515,9 +549,6 @@ function updateResultCount() {
 }
 
 // --- Highlight matching ---
-
-const HTML_ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
-const HTML_ESC_RE = /[&<>"]/g;
 
 function escapeHtml(str) {
   return str.replace(HTML_ESC_RE, (ch) => HTML_ESC[ch]);
@@ -571,17 +602,6 @@ function stripUrl(url) {
     return url;
   }
 }
-
-const FALLBACK_ICON = "data:image/svg+xml," + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="%2345475a"/><text x="8" y="12" text-anchor="middle" font-size="11" fill="%23cdd6f4">?</text></svg>'
-);
-
-const SETTINGS_ICON = "data:image/svg+xml," + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="%23475569"/><path d="M8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM8 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="%23cdd6f4"/><path d="M13 7.5h-.7a4.5 4.5 0 00-.5-1.2l.5-.5a.5.5 0 000-.7l-.4-.4a.5.5 0 00-.7 0l-.5.5a4.5 4.5 0 00-1.2-.5V4a.5.5 0 00-.5-.5h-.5a.5.5 0 00-.5.5v.7a4.5 4.5 0 00-1.2.5l-.5-.5a.5.5 0 00-.7 0l-.4.4a.5.5 0 000 .7l.5.5a4.5 4.5 0 00-.5 1.2H3a.5.5 0 00-.5.5v.5a.5.5 0 00.5.5h.7a4.5 4.5 0 00.5 1.2l-.5.5a.5.5 0 000 .7l.4.4a.5.5 0 00.7 0l.5-.5a4.5 4.5 0 001.2.5v.7a.5.5 0 00.5.5h.5a.5.5 0 00.5-.5v-.7a4.5 4.5 0 001.2-.5l.5.5a.5.5 0 00.7 0l.4-.4a.5.5 0 000-.7l-.5-.5a4.5 4.5 0 00.5-1.2h.7a.5.5 0 00.5-.5V8a.5.5 0 00-.5-.5z" fill="%23cdd6f4"/></svg>'
-);
-
-const windowNumberMap = new Map();
-let nextWindowNumber = 1;
 
 function getWindowNumber(windowId) {
   if (!windowNumberMap.has(windowId)) {

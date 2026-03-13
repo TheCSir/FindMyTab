@@ -55,7 +55,7 @@ async function injectOverlay() {
           "width:680px;height:520px;border:none;border-radius:12px;" +
           "box-shadow:0 25px 60px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.1);" +
           "transform:scale(0.96) translateY(-8px);transition:transform .15s ease,opacity .15s ease;" +
-          "opacity:0;background:#292a2d";
+          "opacity:0;background:transparent";
 
         overlay.appendChild(iframe);
         document.body.appendChild(overlay);

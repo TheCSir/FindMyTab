@@ -5,11 +5,13 @@ let currentSettings = {};
 document.addEventListener("DOMContentLoaded", async () => {
   currentSettings = await loadSettings();
   buildColorGrid();
+  buildBgColorGrid();
   buildStyleGrid();
   buildSegmentedControls();
   buildSortSelect();
   applySettingsToUI();
   bindEvents();
+  bindAppearanceEvents();
   applyLivePreview();
 });
 
@@ -24,6 +26,23 @@ function buildColorGrid() {
     swatch.dataset.color = preset.value;
     swatch.title = preset.name;
     swatch.addEventListener("click", () => selectColor(preset.value));
+    grid.appendChild(swatch);
+  }
+}
+
+function buildBgColorGrid() {
+  const grid = document.getElementById("bg-color-grid");
+  for (const preset of BG_PRESETS) {
+    const swatch = document.createElement("button");
+    swatch.className = "color-swatch";
+    swatch.style.background = preset.value;
+    swatch.dataset.color = preset.value;
+    swatch.title = preset.name;
+    // Add a border for light swatches so they're visible
+    if (["#ffffff", "#f8f9fa", "#f5f0eb"].includes(preset.value)) {
+      swatch.style.border = "2px solid var(--border)";
+    }
+    swatch.addEventListener("click", () => selectBgColor(preset.value));
     grid.appendChild(swatch);
   }
 }
@@ -51,15 +70,13 @@ function buildStyleGrid() {
 }
 
 function buildSegmentedControls() {
-  // Popup width
-  // Layout mode
   const LAYOUT_OPTIONS = [
     { name: "Popup", value: "popup" },
     { name: "Floating", value: "floating" },
   ];
   buildSegmented("layout-control", LAYOUT_OPTIONS, currentSettings.layout, (val) => {
     currentSettings.layout = val;
-    updateWidthRowVisibility();
+    updateLayoutDependentRows();
     save();
   });
 
@@ -76,12 +93,27 @@ function buildSegmentedControls() {
     save();
   });
 
-  updateWidthRowVisibility();
+  // Hover effect
+  buildSegmented("hover-effect-control", HOVER_EFFECTS, currentSettings.hoverEffect, (val) => {
+    currentSettings.hoverEffect = val;
+    applyLivePreview();
+    save();
+  });
+
+  // Selection effect
+  buildSegmented("selection-effect-control", SELECTION_EFFECTS, currentSettings.selectionEffect, (val) => {
+    currentSettings.selectionEffect = val;
+    applyLivePreview();
+    save();
+  });
+
+  updateLayoutDependentRows();
 }
 
-function updateWidthRowVisibility() {
-  const widthRow = document.getElementById("width-row");
-  widthRow.style.display = currentSettings.layout === "floating" ? "none" : "";
+function updateLayoutDependentRows() {
+  const isFloating = currentSettings.layout === "floating";
+  document.getElementById("width-row").style.display = isFloating ? "none" : "";
+  document.getElementById("opacity-row").style.display = isFloating ? "none" : "";
 }
 
 function buildSegmented(containerId, options, activeValue, onChange) {
@@ -142,6 +174,15 @@ function applySettingsToUI() {
 
   // Close button
   document.getElementById("close-button-toggle").checked = currentSettings.showCloseButton;
+
+  // Background color
+  updateBgColorSelection(currentSettings.bgColor);
+  document.getElementById("bg-color").value = currentSettings.bgColor;
+  document.getElementById("bg-color-hex").textContent = currentSettings.bgColor;
+
+  // Background opacity
+  document.getElementById("bg-opacity").value = currentSettings.bgOpacity;
+  document.getElementById("bg-opacity-value").textContent = currentSettings.bgOpacity + "%";
 
   // Theme class on body
   applyThemeClass(currentSettings.theme);
@@ -205,6 +246,33 @@ function bindEvents() {
   });
 }
 
+function bindAppearanceEvents() {
+  // Background custom color picker
+  const bgColorPicker = document.getElementById("bg-color");
+  bgColorPicker.addEventListener("input", (e) => {
+    selectBgColor(e.target.value);
+  });
+
+  // Background opacity slider
+  const bgOpacity = document.getElementById("bg-opacity");
+  bgOpacity.addEventListener("input", (e) => {
+    currentSettings.bgOpacity = parseInt(e.target.value, 10);
+    document.getElementById("bg-opacity-value").textContent = e.target.value + "%";
+    applyLivePreview();
+    save();
+  });
+
+  // Accent default button
+  document.getElementById("accent-default-btn").addEventListener("click", () => {
+    selectColor(DEFAULTS.accentColor);
+  });
+
+  // Background default button
+  document.getElementById("bg-default-btn").addEventListener("click", () => {
+    selectBgColor(DEFAULTS.bgColor);
+  });
+}
+
 // --- Selection handlers ---
 
 function selectColor(color) {
@@ -216,8 +284,23 @@ function selectColor(color) {
   save();
 }
 
+function selectBgColor(color) {
+  currentSettings.bgColor = color;
+  updateBgColorSelection(color);
+  document.getElementById("bg-color").value = color;
+  document.getElementById("bg-color-hex").textContent = color;
+  applyLivePreview();
+  save();
+}
+
 function updateColorSelection(color) {
-  document.querySelectorAll(".color-swatch").forEach((swatch) => {
+  document.getElementById("color-grid").querySelectorAll(".color-swatch").forEach((swatch) => {
+    swatch.classList.toggle("active", swatch.dataset.color === color);
+  });
+}
+
+function updateBgColorSelection(color) {
+  document.getElementById("bg-color-grid").querySelectorAll(".color-swatch").forEach((swatch) => {
     swatch.classList.toggle("active", swatch.dataset.color === color);
   });
 }
@@ -269,6 +352,16 @@ function applyLivePreview() {
       el.style.fontSize = sizeObj.size;
     });
   }
+
+  // Background color + opacity on preview
+  const bgColor = currentSettings.bgColor;
+  const bgOpacity = currentSettings.bgOpacity;
+  const opacityHex = Math.round((bgOpacity / 100) * 255).toString(16).padStart(2, "0");
+  previewPopup.style.background = bgColor + opacityHex;
+
+  // Hover effect class on preview
+  previewPopup.dataset.hoverEffect = currentSettings.hoverEffect;
+  previewPopup.dataset.selectionEffect = currentSettings.selectionEffect;
 
   // Accent CSS variable for options page itself
   document.documentElement.style.setProperty("--accent", accent);

@@ -78,25 +78,6 @@
       </div>
     </section>
 
-    <!-- Accent Color -->
-    <section class="card">
-      <h2 class="card-title">Accent Color</h2>
-      <div class="setting-row">
-        <div class="setting-label">
-          <span class="label-text">Selection &amp; Focus Color</span>
-          <span class="label-desc">Applied to selected items, focus rings, and links</span>
-        </div>
-      </div>
-      <div class="color-grid" id="color-grid"></div>
-      <div class="setting-row custom-color-row">
-        <label class="label-text" for="custom-color">Custom Color</label>
-        <div class="custom-color-input">
-          <input type="color" id="custom-color" value="#1a73e8">
-          <span id="custom-color-hex">#1a73e8</span>
-        </div>
-      </div>
-    </section>
-
     <!-- Search Box Style -->
     <section class="card">
       <h2 class="card-title">Search Box Style</h2>
@@ -136,6 +117,69 @@
           <input type="checkbox" id="show-urls-toggle">
           <span class="toggle-slider"></span>
         </label>
+      </div>
+    </section>
+
+    <!-- Appearance -->
+    <section class="card">
+      <h2 class="card-title">Appearance</h2>
+
+      <h3 class="card-subtitle">Animation</h3>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Tab Hover Effect</span>
+          <span class="label-desc">Visual effect when hovering over a tab</span>
+        </div>
+        <div class="segmented-control" id="hover-effect-control"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Tab Selection Effect</span>
+          <span class="label-desc">Visual effect for the currently selected tab</span>
+        </div>
+        <div class="segmented-control" id="selection-effect-control"></div>
+      </div>
+
+      <h3 class="card-subtitle">Colors</h3>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Accent Color</span>
+          <span class="label-desc">Applied to selected items, focus rings, and links</span>
+        </div>
+        <button class="default-btn" id="accent-default-btn">Default</button>
+      </div>
+      <div class="color-grid" id="color-grid"></div>
+      <div class="setting-row custom-color-row">
+        <label class="label-text" for="custom-color">Custom Color</label>
+        <div class="custom-color-input">
+          <input type="color" id="custom-color" value="#1a73e8">
+          <span id="custom-color-hex">#1a73e8</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="label-text">Background Color</span>
+          <span class="label-desc">Base background color for the popup</span>
+        </div>
+        <button class="default-btn" id="bg-default-btn">Default</button>
+      </div>
+      <div class="color-grid" id="bg-color-grid"></div>
+      <div class="setting-row custom-color-row">
+        <label class="label-text" for="bg-color">Custom Color</label>
+        <div class="custom-color-input">
+          <input type="color" id="bg-color" value="#292a2d">
+          <span id="bg-color-hex">#292a2d</span>
+        </div>
+      </div>
+      <div class="setting-row" id="opacity-row">
+        <div class="setting-label">
+          <span class="label-text">Background Opacity</span>
+          <span class="label-desc">Transparency level of the popup background</span>
+        </div>
+        <div class="slider-control">
+          <input type="range" id="bg-opacity" min="20" max="100" value="100">
+          <span id="bg-opacity-value">100%</span>
+        </div>
       </div>
     </section>
 
