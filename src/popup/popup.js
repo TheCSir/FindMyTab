@@ -13,7 +13,6 @@ const emptyState = document.getElementById("empty-state");
 const scrollViewport = document.getElementById("scroll-viewport");
 const scrollSpacer = document.getElementById("scroll-spacer");
 const resultCount = document.getElementById("result-count");
-const settingsBtn = document.getElementById("settings-btn");
 
 let tabCache = [];
 let filteredTabs = [];
@@ -68,7 +67,6 @@ async function init() {
   scrollViewport.addEventListener("scroll", onScroll);
   resultsList.addEventListener("click", onListClick);
   resultsList.addEventListener("mouseover", onListMouseOver);
-  settingsBtn.addEventListener("click", openSettings);
 
   if (settings.contentSearch) {
     extractContentProgressively();
@@ -126,9 +124,19 @@ function applySortOrder(tabs) {
   // "recent" keeps Chrome's default order
 }
 
-function openSettings() {
-  chrome.runtime.openOptionsPage();
-}
+const SETTINGS_ENTRY = {
+  id: "__settings__",
+  windowId: 0,
+  title: "Where Is My Tab \u2014 Settings",
+  url: "",
+  favIconUrl: "",
+  titleLower: "where is my tab \u2014 settings preferences options configure",
+  urlLower: "",
+  urlDisplay: "Extension settings",
+  content: "",
+  contentLower: "",
+  isSettings: true,
+};
 
 // --- Content extraction ---
 
@@ -233,6 +241,10 @@ function executeSearch() {
       if (score > 0) scored.push({ tab, score });
     }
 
+    // Check if settings entry matches
+    const settingsScore = scoreTab(SETTINGS_ENTRY, terms);
+    if (settingsScore > 0) scored.push({ tab: SETTINGS_ENTRY, score: settingsScore });
+
     scored.sort((a, b) => b.score - a.score);
     if (scored.length > maxResults) scored.length = maxResults;
     filteredTabs = scored.map((s) => s.tab);
@@ -317,10 +329,10 @@ function createTabItem(tab, index, query) {
 
   const favicon = document.createElement("img");
   favicon.className = "tab-favicon";
-  favicon.src = tab.favIconUrl || FALLBACK_ICON;
+  favicon.src = tab.isSettings ? SETTINGS_ICON : (tab.favIconUrl || FALLBACK_ICON);
   favicon.alt = "";
   favicon.loading = "lazy";
-  favicon.onerror = faviconError;
+  if (!tab.isSettings) favicon.onerror = faviconError;
 
   const info = document.createElement("div");
   info.className = "tab-info";
@@ -364,7 +376,7 @@ function createTabItem(tab, index, query) {
     li.appendChild(badge);
   }
 
-  if (settings.showCloseButton) {
+  if (settings.showCloseButton && !tab.isSettings) {
     const closeBtn = document.createElement("button");
     closeBtn.className = "tab-close";
     closeBtn.title = "Close tab";
@@ -450,6 +462,11 @@ function scrollToSelected() {
 // --- Tab actions ---
 
 async function switchToTab(tab) {
+  if (tab.isSettings) {
+    chrome.runtime.openOptionsPage();
+    window.close();
+    return;
+  }
   await chrome.tabs.update(tab.id, { active: true });
   await chrome.windows.update(tab.windowId, { focused: true });
   window.close();
@@ -533,6 +550,10 @@ function stripUrl(url) {
 
 const FALLBACK_ICON = "data:image/svg+xml," + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="%2345475a"/><text x="8" y="12" text-anchor="middle" font-size="11" fill="%23cdd6f4">?</text></svg>'
+);
+
+const SETTINGS_ICON = "data:image/svg+xml," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="3" fill="%23475569"/><path d="M8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM8 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="%23cdd6f4"/><path d="M13 7.5h-.7a4.5 4.5 0 00-.5-1.2l.5-.5a.5.5 0 000-.7l-.4-.4a.5.5 0 00-.7 0l-.5.5a4.5 4.5 0 00-1.2-.5V4a.5.5 0 00-.5-.5h-.5a.5.5 0 00-.5.5v.7a4.5 4.5 0 00-1.2.5l-.5-.5a.5.5 0 00-.7 0l-.4.4a.5.5 0 000 .7l.5.5a4.5 4.5 0 00-.5 1.2H3a.5.5 0 00-.5.5v.5a.5.5 0 00.5.5h.7a4.5 4.5 0 00.5 1.2l-.5.5a.5.5 0 000 .7l.4.4a.5.5 0 00.7 0l.5-.5a4.5 4.5 0 001.2.5v.7a.5.5 0 00.5.5h.5a.5.5 0 00.5-.5v-.7a4.5 4.5 0 001.2-.5l.5.5a.5.5 0 00.7 0l.4-.4a.5.5 0 000-.7l-.5-.5a4.5 4.5 0 00.5-1.2h.7a.5.5 0 00.5-.5V8a.5.5 0 00-.5-.5z" fill="%23cdd6f4"/></svg>'
 );
 
 const windowNumberMap = new Map();

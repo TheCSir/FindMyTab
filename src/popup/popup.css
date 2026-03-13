@@ -140,7 +140,7 @@ body {
 
 #search-input {
   width: 100%;
-  padding: 8px 36px 8px 34px;
+  padding: 8px 12px 8px 34px;
   border: 2px solid transparent;
   border-radius: var(--search-radius);
   background: var(--input-bg);
@@ -159,28 +159,6 @@ body {
   background: var(--input-focus-bg);
   border-color: var(--input-border-focus);
   box-shadow: 0 1px 6px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-#settings-btn {
-  position: absolute;
-  right: 4px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.3s;
-}
-
-#settings-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  transform: rotate(45deg);
 }
 
 #result-count {
